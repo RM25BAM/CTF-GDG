@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Windows from "../assets/windows87.png";
 import Bin from "../assets/Recycle Bin (full).png";
 import Explorer from "../assets/Internet Explorer 6.png";
@@ -9,8 +9,7 @@ import cmd from "../assets/Command Prompt.png";
 import TonyVideo from "../assets/tony.mp4";
 import { useNavigate } from "react-router-dom";
 
-const encodedPassword = "cGllZFBpcGVyLk5ldA==";
-
+const encodedPassword = "SGVpc2VuYmVyZw==";
 
 const STICKY_NOTE = `Listen—this damn password thing is a joke. I lost it again, I’m tellin’ ya. 
 Who invented this crap? I gotta keep remembering 12 different codes like I’m countin’ inventory.
@@ -36,12 +35,16 @@ type DragState =
   | null;
 
 const Level1: React.FC = () => {
-  // terminal state
   const navigate = useNavigate();
+
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [terminalLines, setTerminalLines] = useState<string[]>([]);
   const [terminalMode, setTerminalMode] = useState<"user" | "pass" | "done">("user");
   const [input, setInput] = useState("");
+
+  // XP loading overlay state
+  const [showLoading, setShowLoading] = useState(false);
+  const [progress, setProgress] = useState(0); // 0-100 loading bar
 
   // popup visibility
   const [showSticky, setShowSticky] = useState(false);
@@ -55,6 +58,9 @@ const Level1: React.FC = () => {
 
   const [dragging, setDragging] = useState<DragState>(null);
 
+  // ref to control Tony video
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   useEffect(() => {
     console.log(
       "%cWelcome to Windows XP — right click > View Page Source ;)",
@@ -66,7 +72,6 @@ const Level1: React.FC = () => {
       encodedPassword
     );
   }, []);
-
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -111,6 +116,25 @@ const Level1: React.FC = () => {
     };
   }, [dragging]);
 
+  useEffect(() => {
+    if (!showLoading) return;
+
+    setProgress(0);
+    const start = Date.now();
+    const total = 6000;
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, (elapsed / total) * 100);
+      setProgress(pct);
+      if (pct >= 100) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [showLoading]);
+
   const startDrag = (
     windowName: DragState["window"],
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -146,7 +170,7 @@ const Level1: React.FC = () => {
       const updated = [...prev];
       if (terminalMode === "user") {
         updated[updated.length - 1] = `login: ${trimmed}`;
-        if (trimmed === "Admin") {
+        if (trimmed === "Anthony") {
           updated.push("password: ");
           setTerminalMode("pass");
         } else {
@@ -164,7 +188,19 @@ const Level1: React.FC = () => {
             ""
           );
           setTerminalMode("done");
-          navigate("/level2")
+
+          if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+          }
+          setShowVideo(false);
+
+          setTerminalOpen(false);
+          setShowLoading(true);
+
+          setTimeout(() => {
+            navigate("/level2");
+          }, 6000);
         } else {
           updated.push("ACCESS DENIED.", "", "login: ");
           setTerminalMode("user");
@@ -179,24 +215,21 @@ const Level1: React.FC = () => {
 
   return (
     <main className="overflow-hidden min-h-screen flex flex-col bg-[#008080] relative">
-      {/* hidden flag comment */}
       <div
         aria-hidden="true"
         dangerouslySetInnerHTML={{
-          __html: "<!-- FLAG: GGCAMP{level1_view_source} -->",
+          __html: "<!-- FLAG: Anthony -->",
         }}
       />
-      {/* username hint in HTML */}
-      <span className="sr-only">Login username: Admin</span>
 
-      {/* wallpaper */}
+      {/* Wallpaper */}
       <img
         src={Windows}
         alt="Windows XP Wallpaper"
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
-      {/* DESKTOP ICONS — unchanged labels/icons like you asked */}
+      {/* Desktop icons */}
       <div className="absolute top-6 left-6 flex flex-col gap-6 text-white font-[system-ui] text-xs z-5 drop-shadow-md">
         <div className="flex flex-col items-center">
           <img src={Bin} alt="Recycle Bin" className="w-12 h-12" />
@@ -214,7 +247,7 @@ const Level1: React.FC = () => {
         </div>
       </div>
 
-      {/* TERMINAL WINDOW */}
+      {/* Terminal */}
       {terminalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="pointer-events-auto bg-gray-900 border border-gray-300 shadow-2xl w-[90%] max-w-xl">
@@ -260,16 +293,12 @@ const Level1: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* TASKBAR — same icons/text as you had */}
       <footer className="mt-auto bg-[#245EDC] border-t-4 border-[#19459B] text-white flex items-center justify-between px-3 z-10 font-[Tahoma]">
-        {/* Start */}
         <button className="justify-start flex items-center bg-[#1a9f00] hover:bg-[#1dbf00] px-4 h-10 rounded-2xl shadow-inner text-sm font-semibold border border-[#0a6000]">
           <img src={wLogo} alt="Start" className="w-6 mr-1" />
           Start
         </button>
 
-        {/* Task Buttons */}
         <div className="flex gap-2 text-sm justify-start">
           <button
             className="bg-[#3C78D8] hover:bg-[#4A90E2] px-3 py-1 rounded-sm shadow-inner border border-[#1E4BA8] flex flex-row items-center"
@@ -280,7 +309,6 @@ const Level1: React.FC = () => {
           </button>
         </div>
 
-        {/* Clock */}
         <div className="bg-[#3C78D8] px-2 py-1 rounded-sm shadow-inner border border-[#1E4BA8] text-sm font-mono flex flex-row h-8 items-center">
           <img className="w-4 mr-2" src={clock} alt="clock" />
           {new Date().toLocaleTimeString([], {
@@ -290,7 +318,6 @@ const Level1: React.FC = () => {
         </div>
       </footer>
 
-      {/* STICKY NOTE POPUP (draggable) */}
       {showSticky && (
         <div
           className="fixed z-30 w-64 bg-yellow-200/95 border border-yellow-400 p-3 rounded shadow-xl text-sm text-gray-900 font-sans"
@@ -312,7 +339,7 @@ const Level1: React.FC = () => {
         </div>
       )}
 
-      {/* BOSS NOTE POPUP (Notepad-ish, draggable) */}
+      {/* Boss note */}
       {showBossNote && (
         <div
           className="fixed z-40 w-[25%] max-w-2xl bg-gray-100 rounded shadow-2xl border border-gray-300"
@@ -326,7 +353,9 @@ const Level1: React.FC = () => {
               <span className="w-3 h-3 bg-red-500 rounded-full" />
               <span className="w-3 h-3 bg-yellow-400 rounded-full" />
               <span className="w-3 h-3 bg-green-500 rounded-full" />
-              <span className="ml-2 text-sm font-semibold">BossNote.txt - Notepad</span>
+              <span className="ml-2 text-sm font-semibold">
+                BossNote.txt - Notepad
+              </span>
             </div>
             <button
               className="px-2 py-0.5 text-xs border rounded bg-white"
@@ -352,7 +381,7 @@ const Level1: React.FC = () => {
         </div>
       )}
 
-      {/* VIDEO POPUP (Tony clip, draggable) */}
+      {/* Tony video popup */}
       {showVideo && (
         <div
           className="fixed z-10 w-[90%] max-w-xl bg-black/90 rounded shadow-2xl border border-gray-700 text-gray-100"
@@ -373,20 +402,41 @@ const Level1: React.FC = () => {
           <div className="p-3">
             {TonyVideo ? (
               <video
+                ref={videoRef}
                 src={TonyVideo}
                 autoPlay
                 loop
                 preload="true"
-
                 className="w-full rounded border border-gray-600"
               />
             ) : (
               <p className="text-sm text-gray-300">
-                No video file found. Add <code>tony_clip.mp4</code> under{" "}
+                No video file found. Add <code>tony.mp4</code> under{" "}
                 <code>src/assets/</code> to enable playback (and only use media you have
                 rights to).
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* XP loading overlay with animated progress bar */}
+      {showLoading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black">
+          <div className="flex flex-col items-center">
+            <img src={wLogo} alt="Windows logo" className="w-20 mb-4" />
+            <p className="text-xl text-blue-400 font-semibold mb-8">
+              Microsoft Windows XP
+            </p>
+            <div className="w-64 h-3 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all duration-100"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="mt-4 text-xs text-gray-400">
+              Loading secure environment...
+            </p>
           </div>
         </div>
       )}
