@@ -374,8 +374,10 @@ const Level1: React.FC = () => {
             {TonyVideo ? (
               <video
                 src={TonyVideo}
-                controls
                 autoPlay
+                loop
+                preload="true"
+
                 className="w-full rounded border border-gray-600"
               />
             ) : (
