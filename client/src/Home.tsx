@@ -1,6 +1,6 @@
 // src/Home.tsx
 import React, { useEffect, useState } from "react";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Marquee from "react-fast-marquee";
 import Logo from "./assets/gdg_logo.png";
 
@@ -158,7 +158,6 @@ export default function Home() {
     setPaidFlowActive(true);
     // short faux processing animation, then navigate
     setTimeout(() => {
-      // navigate to level1
       navigate("/level1");
     }, 1900);
   };
@@ -191,9 +190,9 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="rounded-md p-4 bg-gradient-to-r from-slate-800/60 to-slate-700/30 border border-white/5">
             <p className="text-lg">
-              Welcome! Start with <strong>Level 1</strong> to learn basic web security/recon techniques.
+              Welcome! Start with <strong>Capture the Flag</strong> to learn basics web security techniques.
             </p>
-            Rick and Morty, Silicon Valley, fallout, sopranos
+            {/* Sopranos -> silicon valley -> fallout -> Rick and Morty  */}
             <ul className="mt-4 space-y-2">
               <li>
                 <button
@@ -226,7 +225,7 @@ export default function Home() {
             </ul>
 
             <p className="mt-4 text-sm text-gray-400">
-              {!paidFlowActive ? "Warning: system unstable — some features are locked. Follow on-screen prompts to proceed." : "Firewall configured (simulation). Welcome to Level 1."}
+              {!paidFlowActive ? "Ready to play?" : "Hahaha Don't trust anyone!"}
             </p>
           </div>
         </div>
